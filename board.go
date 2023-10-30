@@ -162,7 +162,7 @@ func (g *GameBoard) Print(showFogOfWar bool) {
 }
 
 func (g *GameBoard) printToSlice(showFogOfWar bool) [][]string {
-    grid := make([][]string, g.Rows)
+	grid := make([][]string, g.Rows)
 	for i := range grid {
 		row := make([]string, g.Columns)
 		grid[i] = row
@@ -171,14 +171,14 @@ func (g *GameBoard) printToSlice(showFogOfWar bool) [][]string {
 	for i := 0; i < g.Rows; i++ {
 		for j := 0; j < g.Columns; j++ {
 			if showFogOfWar && g.Grid[i][j].IsFog {
-				grid[i][j]="?"
+				grid[i][j] = "?"
 			} else {
 				if g.Grid[i][j].HasCity {
-					grid[i][j]="C"
+					grid[i][j] = "C"
 				} else if g.Grid[i][j].IsLand {
-					grid[i][j]="L"
+					grid[i][j] = "L"
 				} else {
-					grid[i][j]="S"
+					grid[i][j] = "S"
 				}
 			}
 		}
@@ -240,39 +240,39 @@ func (g *GameBoard) getPossibleMoves(unit *Unit) []BoardCoordinate {
 			}
 			newRow, newCol := unit.PositionX+i, unit.PositionY+j
 			if newRow >= 0 && newRow < g.Rows && newCol >= 0 && newCol < g.Columns {
-                defender := g.getUnitAtCoordinates(BoardCoordinate{newRow, newCol}, unit.Player)
-	            if defender != nil {
-	                enemyUnits = append(enemyUnits, BoardCoordinate{newRow, newCol})
-	            }
+				defender := g.getUnitAtCoordinates(BoardCoordinate{newRow, newCol}, unit.Player)
+				if defender != nil {
+					enemyUnits = append(enemyUnits, BoardCoordinate{newRow, newCol})
+				}
 				if g.Grid[newRow][newCol].HasCity {
-				    city := g.getCityAtCoordinates(BoardCoordinate{newRow, newCol})
-				    if city.OccupyingPlayer == Unoccupied {
-				        unoccupiedCities = append(unoccupiedCities, BoardCoordinate{newRow, newCol})
-				    } else if city.OccupyingPlayer == OccupiedByPlayer1 && unit.Player!=1 {
-                        enemyCities = append(enemyCities, BoardCoordinate{newRow, newCol})
-                    } else if city.OccupyingPlayer == OccupiedByPlayer2 && unit.Player!=2 {
-                        enemyCities = append(enemyCities, BoardCoordinate{newRow, newCol})
-                    }
-                }
+					city := g.getCityAtCoordinates(BoardCoordinate{newRow, newCol})
+					if city.OccupyingPlayer == Unoccupied {
+						unoccupiedCities = append(unoccupiedCities, BoardCoordinate{newRow, newCol})
+					} else if city.OccupyingPlayer == OccupiedByPlayer1 && unit.Player != 1 {
+						enemyCities = append(enemyCities, BoardCoordinate{newRow, newCol})
+					} else if city.OccupyingPlayer == OccupiedByPlayer2 && unit.Player != 2 {
+						enemyCities = append(enemyCities, BoardCoordinate{newRow, newCol})
+					}
+				}
 				if g.Grid[newRow][newCol].IsFog {
-				    fogOfWar = append(fogOfWar, BoardCoordinate{newRow, newCol})
+					fogOfWar = append(fogOfWar, BoardCoordinate{newRow, newCol})
 				}
 				randomMoves = append(randomMoves, BoardCoordinate{newRow, newCol})
 			}
 		}
 	}
 	if len(enemyUnits) > 0 {
-        moves = append(moves, enemyUnits[0])
-    } else if len(enemyCities) > 0 {
-        moves = append(moves, enemyCities[0])
-    } else if len(unoccupiedCities) > 0 {
-	    moves = append(moves, unoccupiedCities[0])
+		moves = append(moves, enemyUnits[0])
+	} else if len(enemyCities) > 0 {
+		moves = append(moves, enemyCities[0])
+	} else if len(unoccupiedCities) > 0 {
+		moves = append(moves, unoccupiedCities[0])
 	} else if len(fogOfWar) > 0 {
-	    moves = append(moves, fogOfWar[0])
+		moves = append(moves, fogOfWar[0])
 	} else {
-	    for _, randomMove := range randomMoves {
-	        moves = append(moves, randomMove)
-	    }
+		for _, randomMove := range randomMoves {
+			moves = append(moves, randomMove)
+		}
 	}
 	return moves
 }

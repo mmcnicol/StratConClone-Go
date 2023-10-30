@@ -1,8 +1,6 @@
 package main
 
-import (
 // "fmt"
-)
 
 func main() {
 	rows, columns := 25, 55 // x, y (horizontal, vertical) (rows, columns)

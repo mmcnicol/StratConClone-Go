@@ -1,18 +1,18 @@
 package main
 
 import (
-    "reflect"
+	"reflect"
 	"testing"
 )
 
 func TestClearFogOfWarAroundCoordinate(t *testing.T) {
 
 	want := [][]string{
-        {"?", "?", "?", "?", "?", "?", "?", "?"},
-        {"?", "?", "?", "L", "L", "L", "?", "?"},
-        {"?", "?", "?", "L", "C", "L", "?", "?"},
-        {"?", "?", "?", "L", "L", "L", "?", "?"},
-    }
+		{"?", "?", "?", "?", "?", "?", "?", "?"},
+		{"?", "?", "?", "L", "L", "L", "?", "?"},
+		{"?", "?", "?", "L", "C", "L", "?", "?"},
+		{"?", "?", "?", "L", "L", "L", "?", "?"},
+	}
 
 	rows, columns := 4, 8 // x, y (horizontal, vertical)
 	board := NewGameBoard(rows, columns)
@@ -33,9 +33,9 @@ func TestClearFogOfWarAroundCoordinate(t *testing.T) {
 	board.clearFogOfWarAroundCoordinate(boardCoordinate, radius)
 	//board.Print(showFogOfWar)
 	got := board.printToSlice(showFogOfWar)
-    if !reflect.DeepEqual(got, want) {
-        t.Errorf("name: ClearFogOfWarAroundCoordinate, got = %v; want %v", got, want)
-    }
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("name: ClearFogOfWarAroundCoordinate, got = %v; want %v", got, want)
+	}
 }
 
 func TestHasNeighboringCity(t *testing.T) {
