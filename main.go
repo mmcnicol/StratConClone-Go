@@ -1,64 +1,57 @@
 package main
 
-// "fmt"
+import (
+    "fmt"
+    "os"
+    "os/exec"
+    "runtime"
+)
+
+// ANSI color codes
+const (
+    Reset  = "\033[0m"
+    Red    = "\033[31m"
+    Green  = "\033[32m"
+    Yellow = "\033[33m"
+    Blue   = "\033[34m"
+    Purple = "\033[35m"
+    Cyan   = "\033[36m"
+    White  = "\033[37m"
+)
 
 func main() {
-	rows, columns := 25, 55 // x, y (horizontal, vertical) (rows, columns)
-	board := NewGameBoard(rows, columns)
 
+	rows, columns := 10, 20 // x, y (horizontal, vertical) (rows, columns)
+	board := NewGameBoard(rows, columns)
 	numIslands := 10
 	board.GenerateRandomIslands(numIslands)
-
-	numCities := 10
+	numCities := 30
 	board.AddCities(numCities)
+	board.Player1 = NewPlayer("player 1", true)
+	board.Player2 = NewPlayer("player 2", true)
+    board.DayZero()
+    for {
+        board.NextDay()
+        board.DoPlayerTurnAI(1)
+        if board.hasPlayerWon(1) {
+            break
+        }
+        board.DoPlayerTurnAI(2)
+        if board.hasPlayerWon(2) {
+            break
+        }
+    }
+    fmt.Println("GAME OVER")
+}
 
-	//player1 := NewPlayer("player1", true)
-	//player2 := NewPlayer("player2", true)
-
-	//day := 1
-	//board.DoPlayerTurnAI(1)
-	//board.DoPlayerTurnAI(2)
-
-	//day++
-	//board.DoPlayerTurnAI(1)
-	//board.DoPlayerTurnAI(2)
-
-	//showFogOfWar := false
-	//board.Print(showFogOfWar)
-
-	/*
-				// Example usage
-				city := NewCity(0, 0)
-				city.OccupyCity(1) // Occupied by player 1
-				SetManufacturingUnit(Tank)
-
-				// Simulate days
-				for day := 1; day <= 5; day++ { // Simulating 5 days
-					fmt.Printf("Day %d\n", day)
-
-					// loop list of cities occupied by player 2
-
-		                if city.ManufactureUnit() {
-		                    // TODO: add unit to list of units for current player
-		                    fmt.Printf("City manufactured a %s!\n", city.ManufacturingUnit)
-		                } else {
-		                    fmt.Println("City is still manufacturing a unit...")
-		                }
-
-		                // TODO: give player 2 control until they indicate "end turn"
-
-					// loop list of cities occupied by player 1
-
-		                if city.ManufactureUnit() {
-		                    // TODO: add unit to list of units for current player
-		                    fmt.Printf("City manufactured a %s!\n", city.ManufacturingUnit)
-		                } else {
-		                    fmt.Println("City is still manufacturing a unit...")
-		                }
-
-		                // TODO: give player 1 control until they indicate "end turn"
-
-					//time.Sleep(1 * time.Second) // Simulate some time passing between turns
-				}
-	*/
+func clearScreen() {
+    if runtime.GOOS == "windows" {
+        cmd := exec.Command("cmd", "/c", "cls")
+        cmd.Stdout = os.Stdout
+        cmd.Run()
+    } else {
+        cmd := exec.Command("clear")
+        cmd.Stdout = os.Stdout
+        cmd.Run()
+    }
 }

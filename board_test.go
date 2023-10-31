@@ -401,7 +401,7 @@ func TestGetIslandMap(t *testing.T) {
 	}
 
 	// Call the function and check if the returned island map matches the expected one
-	result := board.getIslandMap(unit)
+	result := board.getIslandMap(Coordinate{unit.PositionX, unit.PositionY})
 	if !reflect.DeepEqual(result, expectedIslandMap) {
 		t.Errorf("Test failed: Expected island map %+v, got %+v", expectedIslandMap, result)
 	}

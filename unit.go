@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // UnitType represents the type of units that can be manufactured in a city.
 type UnitType int
 
@@ -76,12 +78,85 @@ func GetNewUnitStrength(unit UnitType) int {
 	return 0
 }
 
+// GetDaysToProduceUnit gets the number of days to produce a unit.
+func GetDaysToProduceUnit(unit UnitType) int {
+    switch unit {
+	case Tank:
+	    return 4
+	case Fighter:
+		return 6
+	case Bomber:
+		return 25
+	case Transport:
+		return 8
+	case Destroyer:
+		return 8
+	case Submarine:
+		return 8
+	case Carrier:
+		return 10
+	case Battleship:
+		return 20
+	}
+	return 0
+}
+
 // MoveTo updates the unit's position on the board, reduces MovesLeftThisDay, and if applicable, reduces Fuel
-func (u *Unit) MoveTo(Coordinate Coordinate) {
-	u.PositionX = Coordinate.PositionX
-	u.PositionY = Coordinate.PositionY
+func (u *Unit) MoveTo(coordinate Coordinate) {
+    fmt.Printf("MoveTo %d, %d\n", coordinate.PositionX, coordinate.PositionY)
+	u.PositionX = coordinate.PositionX
+	u.PositionY = coordinate.PositionY
 	u.MovesLeftThisDay--
 	if u.CanFly {
 		u.Fuel--
 	}
+}
+
+// Symbol returns a character depending on the unit type
+func (u *Unit) Symbol() string {
+    switch u.Type {
+    case Tank:
+        return "T"
+    case Fighter:
+        return "F"
+    case Bomber:
+        return "B"
+    case Transport:
+        return "R"
+    case Destroyer:
+        return "D"
+    case Submarine:
+        return "S"
+    case Carrier:
+        return "C"
+    case Battleship:
+        return "L"
+    default:
+        return "?"
+    }
+}
+
+func unitTypeToString(unitType UnitType) string {
+    switch unitType {
+    case Blank:
+        return "Blank"
+    case Tank:
+        return "Tank"
+    case Fighter:
+        return "Fighter"
+    case Bomber:
+        return "Bomber"
+    case Transport:
+        return "Transport"
+    case Destroyer:
+        return "Destroyer"
+    case Submarine:
+        return "Submarine"
+    case Carrier:
+        return "Carrier"
+    case Battleship:
+        return "Battleship"
+    default:
+        return "Unknown"
+    }
 }

@@ -1,5 +1,7 @@
 package main
 
+//import "fmt"
+
 // CityState represents the state of a city.
 type CityState int
 
@@ -43,7 +45,7 @@ func (c *City) OccupyCity(player int) {
 // SetManufacturingUnit sets the unitTye that the city should manufacture.
 func (c *City) SetManufacturingUnit(unit UnitType) {
 	c.ManufacturingUnit = unit
-	c.DaysUntilUnitReady = c.GetDaysToProduceUnit(unit)
+	c.DaysUntilUnitReady = GetDaysToProduceUnit(unit)
 }
 
 // ManufactureUnit updates the days until the unit is ready and returns true if the unit is ready.
@@ -58,31 +60,8 @@ func (c *City) ManufactureUnit() bool {
 		c.DaysUntilUnitReady--
 	}
 	if c.DaysUntilUnitReady == 0 {
-		c.DaysUntilUnitReady = c.GetDaysToProduceUnit(c.ManufacturingUnit)
+		c.DaysUntilUnitReady = GetDaysToProduceUnit(c.ManufacturingUnit)
 		return true
 	}
 	return false
-}
-
-// GetDaysToProduceUnit gets the number of days to produce a unit.
-func (c *City) GetDaysToProduceUnit(unit UnitType) int {
-	switch unit {
-	case Tank:
-		return 4
-	case Fighter:
-		return 6
-	case Bomber:
-		return 25
-	case Transport:
-		return 8
-	case Destroyer:
-		return 8
-	case Submarine:
-		return 8
-	case Carrier:
-		return 10
-	case Battleship:
-		return 20
-	}
-	return 0
 }
