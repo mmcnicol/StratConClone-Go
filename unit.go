@@ -77,9 +77,9 @@ func GetNewUnitStrength(unit UnitType) int {
 }
 
 // MoveTo updates the unit's position on the board, reduces MovesLeftThisDay, and if applicable, reduces Fuel
-func (u *Unit) MoveTo(boardCoordinate BoardCoordinate) {
-	u.PositionX = boardCoordinate.PositionX
-	u.PositionY = boardCoordinate.PositionY
+func (u *Unit) MoveTo(Coordinate Coordinate) {
+	u.PositionX = Coordinate.PositionX
+	u.PositionY = Coordinate.PositionY
 	u.MovesLeftThisDay--
 	if u.CanFly {
 		u.Fuel--

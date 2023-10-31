@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"math"
 	"math/rand"
@@ -23,8 +24,8 @@ type Cell struct {
 	HasCity bool // true if the cell has a city, false otherwise
 }
 
-// BoardCoordinate struct represents an X, Y, position on the game board.
-type BoardCoordinate struct {
+// Coordinate struct represents an X, Y, position on the game board.
+type Coordinate struct {
 	PositionX int
 	PositionY int
 }
@@ -195,6 +196,9 @@ func (g *GameBoard) DoPlayerTurnAI(player int) {
 		}
 		// Process the active unit here
 		g.runUnitAI(activeUnit)
+		if g.hasPlayerWon(player) {
+			break // the player has won
+		}
 	}
 }
 
@@ -224,13 +228,14 @@ func (g *GameBoard) runUnitAI(unit *Unit) {
 // should attack enemy city if nearby
 // should attack unoccupied city if nearby
 // should move to clear fog of war if nearby
-func (g *GameBoard) getPossibleMoves(unit *Unit) []BoardCoordinate {
-	var moves []BoardCoordinate
-	var enemyUnits []BoardCoordinate
-	var enemyCities []BoardCoordinate
-	var unoccupiedCities []BoardCoordinate
-	var fogOfWar []BoardCoordinate
-	var randomMoves []BoardCoordinate
+// if island has been conquered, move to staging point and wait
+func (g *GameBoard) getPossibleMoves(unit *Unit) []Coordinate {
+	var moves []Coordinate
+	var enemyUnits []Coordinate
+	var enemyCities []Coordinate
+	var unoccupiedCities []Coordinate
+	var fogOfWar []Coordinate
+	var randomMoves []Coordinate
 
 	// Check neighboring cells and add valid moves to the list
 	for i := -1; i <= 1; i++ {
@@ -240,36 +245,63 @@ func (g *GameBoard) getPossibleMoves(unit *Unit) []BoardCoordinate {
 			}
 			newRow, newCol := unit.PositionX+i, unit.PositionY+j
 			if newRow >= 0 && newRow < g.Rows && newCol >= 0 && newCol < g.Columns {
-				defender := g.getUnitAtCoordinates(BoardCoordinate{newRow, newCol}, unit.Player)
+				defender := g.getUnitAtCoordinates(Coordinate{newRow, newCol}, unit.Player)
 				if defender != nil {
-					enemyUnits = append(enemyUnits, BoardCoordinate{newRow, newCol})
+					enemyUnits = append(enemyUnits, Coordinate{newRow, newCol})
 				}
 				if g.Grid[newRow][newCol].HasCity {
-					city := g.getCityAtCoordinates(BoardCoordinate{newRow, newCol})
+					city := g.getCityAtCoordinates(Coordinate{newRow, newCol})
 					if city.OccupyingPlayer == Unoccupied {
-						unoccupiedCities = append(unoccupiedCities, BoardCoordinate{newRow, newCol})
+						unoccupiedCities = append(unoccupiedCities, Coordinate{newRow, newCol})
 					} else if city.OccupyingPlayer == OccupiedByPlayer1 && unit.Player != 1 {
-						enemyCities = append(enemyCities, BoardCoordinate{newRow, newCol})
+						enemyCities = append(enemyCities, Coordinate{newRow, newCol})
 					} else if city.OccupyingPlayer == OccupiedByPlayer2 && unit.Player != 2 {
-						enemyCities = append(enemyCities, BoardCoordinate{newRow, newCol})
+						enemyCities = append(enemyCities, Coordinate{newRow, newCol})
 					}
 				}
 				if g.Grid[newRow][newCol].IsFog {
-					fogOfWar = append(fogOfWar, BoardCoordinate{newRow, newCol})
+					fogOfWar = append(fogOfWar, Coordinate{newRow, newCol})
 				}
-				randomMoves = append(randomMoves, BoardCoordinate{newRow, newCol})
+				randomMoves = append(randomMoves, Coordinate{newRow, newCol})
 			}
 		}
 	}
 	if len(enemyUnits) > 0 {
+		fmt.Println("found enemyUnits")
 		moves = append(moves, enemyUnits[0])
 	} else if len(enemyCities) > 0 {
+		fmt.Println("found enemyCities")
 		moves = append(moves, enemyCities[0])
 	} else if len(unoccupiedCities) > 0 {
+		fmt.Println("found unoccupiedCities")
 		moves = append(moves, unoccupiedCities[0])
 	} else if len(fogOfWar) > 0 {
+		fmt.Println("found fogOfWar")
 		moves = append(moves, fogOfWar[0])
 	} else {
+		fmt.Println("else")
+		islandMap := g.getIslandMap(*unit)
+		fmt.Printf("got islandMap %v\n", islandMap)
+		isConquered := g.isIslandConquered(islandMap, unit.Player)
+		fmt.Println("got isConquered")
+		if isConquered {
+			stagingPoint := g.getIsIslandCityNextToSea(islandMap)
+			fmt.Printf("got stagingPoint %v\n", stagingPoint)
+			if stagingPoint != nil {
+				pathToStagingPoint := g.FindPath(*stagingPoint, unit)
+				fmt.Printf("got pathToStagingPoint %v\n", pathToStagingPoint)
+				if pathToStagingPoint != nil {
+					firstStepOnPathTowardsStagingPoint := getSecondCoordinate(pathToStagingPoint)
+					fmt.Printf("got firstStepOnPathTowardsStagingPoint %v\n", firstStepOnPathTowardsStagingPoint)
+					if firstStepOnPathTowardsStagingPoint != nil {
+						moves = append(moves, *firstStepOnPathTowardsStagingPoint)
+					}
+				}
+			}
+		}
+	}
+	if len(moves) == 0 {
+		fmt.Println("use randomMoves")
 		for _, randomMove := range randomMoves {
 			moves = append(moves, randomMove)
 		}
@@ -277,16 +309,25 @@ func (g *GameBoard) getPossibleMoves(unit *Unit) []BoardCoordinate {
 	return moves
 }
 
+// getSecondCoordinate returns the second element in the slice of Coordinate.
+func getSecondCoordinate(coordinates []Coordinate) *Coordinate {
+	if len(coordinates) > 1 {
+		firstCoordinate := coordinates[1]
+		return &firstCoordinate
+	}
+	return nil // Return nil if the slice is empty
+}
+
 // attemptMoveTo attempts to move the unit to the destination coordinates
-func (g *GameBoard) attemptMoveTo(destinationCoordinate BoardCoordinate, unit *Unit) {
+func (g *GameBoard) attemptMoveTo(destinationCoordinate Coordinate, unit *Unit) {
 	radius := 1
 	g.clearFogOfWarAroundCoordinate(destinationCoordinate, radius)
 	defender := g.getUnitAtCoordinates(destinationCoordinate, unit.Player)
 	if defender != nil {
-		g.resolveUnitAttack(unit, defender)
+		g.resolveUnitAttack(unit, defender, g.getAttackOutcome())
 	} else if g.Grid[destinationCoordinate.PositionX][destinationCoordinate.PositionY].HasCity && unit.CanMoveOnLand {
 		defender := g.getCityAtCoordinates(destinationCoordinate)
-		g.resolveCityAttack(unit, defender)
+		g.resolveCityAttack(unit, defender, g.getAttackOutcome())
 	} else if g.Grid[destinationCoordinate.PositionX][destinationCoordinate.PositionY].IsLand && unit.CanMoveOnLand {
 		unit.MoveTo(destinationCoordinate)
 	} else if !g.Grid[destinationCoordinate.PositionX][destinationCoordinate.PositionY].IsLand && unit.CanMoveOnWater {
@@ -296,10 +337,20 @@ func (g *GameBoard) attemptMoveTo(destinationCoordinate BoardCoordinate, unit *U
 	}
 }
 
+// getAttackOutcome decides an attack outcome based on chance
+func (g *GameBoard) getAttackOutcome() bool {
+	// Seed the random number generator with the current timestamp
+	rand.Seed(time.Now().UnixNano())
+	if rand.Intn(2) == 0 { // 50% probability.
+		return true
+	}
+	return false
+}
+
 // clearFogOfWarAroundCoordinate clears the fog of war around the specified coordinates within a given radius.
-func (g *GameBoard) clearFogOfWarAroundCoordinate(boardCoordinate BoardCoordinate, radius int) {
-	for i := boardCoordinate.PositionX - radius; i <= boardCoordinate.PositionX+radius; i++ {
-		for j := boardCoordinate.PositionY - radius; j <= boardCoordinate.PositionY+radius; j++ {
+func (g *GameBoard) clearFogOfWarAroundCoordinate(coordinate Coordinate, radius int) {
+	for i := coordinate.PositionX - radius; i <= coordinate.PositionX+radius; i++ {
+		for j := coordinate.PositionY - radius; j <= coordinate.PositionY+radius; j++ {
 			if i >= 0 && i < g.Rows && j >= 0 && j < g.Columns {
 				g.Grid[i][j].IsFog = false
 			}
@@ -308,9 +359,9 @@ func (g *GameBoard) clearFogOfWarAroundCoordinate(boardCoordinate BoardCoordinat
 }
 
 // getUnitAtCoordinates retrieves an enemy unit at the specified coordinates.
-func (g *GameBoard) getUnitAtCoordinates(boardCoordinate BoardCoordinate, attackingPlayer int) *Unit {
+func (g *GameBoard) getUnitAtCoordinates(coordinate Coordinate, attackingPlayer int) *Unit {
 	for i := range g.Units {
-		if g.Units[i].PositionX == boardCoordinate.PositionX && g.Units[i].PositionY == boardCoordinate.PositionY && g.Units[i].Player != attackingPlayer {
+		if g.Units[i].PositionX == coordinate.PositionX && g.Units[i].PositionY == coordinate.PositionY && g.Units[i].Player != attackingPlayer {
 			return &g.Units[i]
 		}
 	}
@@ -318,9 +369,9 @@ func (g *GameBoard) getUnitAtCoordinates(boardCoordinate BoardCoordinate, attack
 }
 
 // getCityAtCoordinates retrieves a city at the specified coordinates.
-func (g *GameBoard) getCityAtCoordinates(boardCoordinate BoardCoordinate) *City {
+func (g *GameBoard) getCityAtCoordinates(coordinate Coordinate) *City {
 	for i := range g.Cities {
-		if g.Cities[i].PositionX == boardCoordinate.PositionX && g.Cities[i].PositionY == boardCoordinate.PositionY {
+		if g.Cities[i].PositionX == coordinate.PositionX && g.Cities[i].PositionY == coordinate.PositionY {
 			return &g.Cities[i]
 		}
 	}
@@ -328,16 +379,10 @@ func (g *GameBoard) getCityAtCoordinates(boardCoordinate BoardCoordinate) *City 
 }
 
 // resolveCityAttack determines the outcome of an attack between an attacking unit and a defending city.
-func (g *GameBoard) resolveCityAttack(attacker *Unit, defender *City) {
+func (g *GameBoard) resolveCityAttack(attacker *Unit, defender *City, attackOutcome bool) {
 	attacker.MovesLeftThisDay--
 	if attacker.CanFly {
 		attacker.Fuel--
-	}
-	// Seed the random number generator with the current timestamp
-	rand.Seed(time.Now().UnixNano())
-	attackOutcome := false
-	if rand.Intn(2) == 0 { // 50% probability.
-		attackOutcome = true
 	}
 	if attackOutcome && attacker.Strength >= defender.Strength {
 		// Apply damage to the defender's strength
@@ -368,16 +413,10 @@ func (g *GameBoard) resolveCityAttack(attacker *Unit, defender *City) {
 }
 
 // resolveUnitAttack determines the outcome of an attack between an attacking unit and a defending unit.
-func (g *GameBoard) resolveUnitAttack(attacker, defender *Unit) {
+func (g *GameBoard) resolveUnitAttack(attacker, defender *Unit, attackOutcome bool) {
 	attacker.MovesLeftThisDay--
 	if attacker.CanFly {
 		attacker.Fuel--
-	}
-	// Seed the random number generator with the current timestamp
-	rand.Seed(time.Now().UnixNano())
-	attackOutcome := false
-	if rand.Intn(2) == 0 { // 50% probability.
-		attackOutcome = true
 	}
 	if attackOutcome && attacker.Strength >= defender.Strength {
 		// Apply damage to the defender's strength
@@ -412,42 +451,151 @@ func (g *GameBoard) removeUnit(unitToRemove *Unit) {
 	g.Units = updatedUnits
 }
 
-/*
-// runTankAI implements the AI logic for the tank unit.
-func (g *GameBoard) runTankAI() {
-	rand.Seed(time.Now().UnixNano())
+// getIslandMap returns a slice of coordinates representing the island connected to the given unit.
+func (g *GameBoard) getIslandMap(unit Unit) []Coordinate {
+	visited := make(map[Coordinate]bool)
+	islandMap := make([]Coordinate, 0)
 
-	// Sample AI logic
-	// In this example, the tank moves randomly to neighboring cells
-	if len(g.Units) > 0 {
-		tankIndex := rand.Intn(len(g.Units))
-		tank := g.Units[tankIndex]
+	// Define a recursive flood fill function to explore land cells
+	var floodFill func(x, y int)
+	floodFill = func(x, y int) {
+		// Check if the cell is within the grid boundaries and is a land cell
+		if x >= 0 && x < g.Rows && y >= 0 && y < g.Columns && g.Grid[y][x].IsLand {
+			// Mark the cell as visited
+			visited[Coordinate{PositionX: x, PositionY: y}] = true
+			// Add the coordinate to the island map
+			islandMap = append(islandMap, Coordinate{PositionX: x, PositionY: y})
 
-		possibleMoves := g.getPossibleMoves(tank)
-		if len(possibleMoves) > 0 {
-			move := possibleMoves[rand.Intn(len(possibleMoves))]
-			g.Units[tankIndex] = move // Update tank's position
-		}
-	}
-}
-
-// getPossibleMoves returns possible moves for the given unit.
-func (g *GameBoard) getPossibleMoves(unit Unit) []Unit {
-	var moves []Unit
-
-	// Check neighboring cells and add valid moves to the list
-	for i := -1; i <= 1; i++ {
-		for j := -1; j <= 1; j++ {
-			if i == 0 && j == 0 {
-				continue // Skip the current cell
-			}
-			newRow, newCol := unit.Row+i, unit.Col+j
-			if newRow >= 0 && newRow < g.Rows && newCol >= 0 && newCol < g.Columns {
-				moves = append(moves, Unit{Row: newRow, Col: newCol})
+			// Explore neighboring cells
+			for i := -1; i <= 1; i++ {
+				for j := -1; j <= 1; j++ {
+					if i != 0 || j != 0 {
+						neighborX, neighborY := x+i, y+j
+						neighborCoord := Coordinate{PositionX: neighborX, PositionY: neighborY}
+						if !visited[neighborCoord] {
+							floodFill(neighborX, neighborY) // Recur for neighboring cell
+						}
+					}
+				}
 			}
 		}
 	}
 
-	return moves
+	// Start the flood fill from the unit's position
+	floodFill(unit.PositionX, unit.PositionY)
+
+	return islandMap
 }
-*/
+
+// isIslandConquered checks if all cities on the island represented by coordinates are occupied by the same player.
+func (g *GameBoard) isIslandConquered(islandMap []Coordinate, playerID int) bool {
+	for _, coord := range islandMap {
+		city := g.getCityAtCoordinates(coord)
+		if city != nil {
+			fmt.Printf("found city %d, %d\n", city.PositionX, city.PositionY)
+			if city.OccupyingPlayer == Unoccupied {
+				fmt.Println("...city is Unoccupied")
+				return false // Island is not conquered if any city is unoccupied
+			} else if city.OccupyingPlayer == OccupiedByPlayer2 && playerID == 1 {
+				fmt.Println("...city is OccupiedByPlayer2")
+				return false // Island is not conquered if any city is not occupied by the player
+			} else if city.OccupyingPlayer == OccupiedByPlayer1 && playerID == 2 {
+				fmt.Println("...city is OccupiedByPlayer1")
+				return false // Island is not conquered if any city is not occupied by the player
+			}
+		}
+	}
+	return true // Island is conquered if all cities are occupied by the player
+}
+
+// getIsIslandCityNextToSea returns coordinate of city which is next to sea.
+func (g *GameBoard) getIsIslandCityNextToSea(islandMap []Coordinate) *Coordinate {
+	for _, coord := range islandMap {
+		city := g.getCityAtCoordinates(coord)
+		if city != nil && city.IsCityNextToSea {
+			fmt.Printf("found island city next to sea %d, %d\n", city.PositionX, city.PositionY)
+			return &Coordinate{PositionX: city.PositionX, PositionY: city.PositionY}
+		}
+	}
+	fmt.Println("did not find island city next to sea, returning nil")
+	return nil // city next to sea not found on island
+}
+
+// FindPath finds a path for the unit to reach the target coordinate on the grid.
+func (g *GameBoard) FindPath(target Coordinate, unit *Unit) []Coordinate {
+	fmt.Printf("in FindPath,\n")
+	fmt.Printf("FindPath unit %d, %d\n", unit.PositionX, unit.PositionY)
+	fmt.Printf("FindPath target %d, %d\n", target.PositionX, target.PositionY)
+	// Define possible moves: up, down, left, right, ...
+	moves := []Coordinate{{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {1, 1}, {0, 0}}
+
+	// Initialize visited map to keep track of visited cells
+	visited := make(map[Coordinate]bool)
+	visited[Coordinate{unit.PositionX, unit.PositionY}] = true
+
+	// Initialize queue for BFS
+	queue := list.New()
+	queue.PushBack([]Coordinate{{unit.PositionX, unit.PositionY}})
+
+	for queue.Len() > 0 {
+		// Dequeue the path from the queue
+		path := queue.Remove(queue.Front()).([]Coordinate)
+		lastPos := path[len(path)-1]
+
+		// If the last position is the target, return the path
+		if lastPos == target {
+			return path
+		}
+
+		// Explore possible moves
+		for _, move := range moves {
+			newX, newY := lastPos.PositionX+move.PositionX, lastPos.PositionY+move.PositionY
+			newPos := Coordinate{newX, newY}
+
+			// Check if the new position is within the grid boundaries and not visited
+			if newX >= 0 && newX < g.Rows && newY >= 0 && newY < g.Columns &&
+				!visited[newPos] &&
+				(unit.CanFly ||
+					(unit.CanMoveOnLand && g.Grid[newX][newY].IsLand) ||
+					(unit.CanMoveOnWater && !g.Grid[newX][newY].IsLand)) {
+
+				// Mark the new position as visited
+				visited[newPos] = true
+
+				// Enqueue the new path
+				newPath := make([]Coordinate, len(path))
+				copy(newPath, path)
+				newPath = append(newPath, newPos)
+				queue.PushBack(newPath)
+			}
+		}
+	}
+
+	fmt.Printf("No path found, returning nil\n")
+	// No path found
+	return nil
+}
+
+// hasPlayerWon checks if the specified player has won the game.
+func (g *GameBoard) hasPlayerWon(playerID int) bool {
+	// Check if any city is occupied by a different player
+	for _, city := range g.Cities {
+		if city.OccupyingPlayer == Unoccupied {
+			return false // Player has not won if any city is unoccupied
+		} else if city.OccupyingPlayer == OccupiedByPlayer1 && playerID != 1 {
+			return false // Player has not won if any city is occupied by another player
+		} else if city.OccupyingPlayer == OccupiedByPlayer2 && playerID != 2 {
+			return false // Player has not won if any city is occupied by another player
+		}
+	}
+
+	// Check if there are no enemy units on the board
+	for _, unit := range g.Units {
+		if unit.Player != playerID {
+			return false // Player has not won if any enemy unit exists
+		}
+	}
+
+	// If all cities are occupied by the player and there are no enemy units, the player has won
+	return true
+}
