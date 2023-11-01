@@ -80,9 +80,9 @@ func GetNewUnitStrength(unit UnitType) int {
 
 // GetDaysToProduceUnit gets the number of days to produce a unit.
 func GetDaysToProduceUnit(unit UnitType) int {
-    switch unit {
+	switch unit {
 	case Tank:
-	    return 4
+		return 4
 	case Fighter:
 		return 6
 	case Bomber:
@@ -103,7 +103,7 @@ func GetDaysToProduceUnit(unit UnitType) int {
 
 // MoveTo updates the unit's position on the board, reduces MovesLeftThisDay, and if applicable, reduces Fuel
 func (u *Unit) MoveTo(coordinate Coordinate) {
-    fmt.Printf("MoveTo %d, %d\n", coordinate.PositionX, coordinate.PositionY)
+	fmt.Printf("MoveTo %d, %d\n", coordinate.PositionX, coordinate.PositionY)
 	u.PositionX = coordinate.PositionX
 	u.PositionY = coordinate.PositionY
 	u.MovesLeftThisDay--
@@ -114,49 +114,49 @@ func (u *Unit) MoveTo(coordinate Coordinate) {
 
 // Symbol returns a character depending on the unit type
 func (u *Unit) Symbol() string {
-    switch u.Type {
-    case Tank:
-        return "T"
-    case Fighter:
-        return "F"
-    case Bomber:
-        return "B"
-    case Transport:
-        return "R"
-    case Destroyer:
-        return "D"
-    case Submarine:
-        return "S"
-    case Carrier:
-        return "C"
-    case Battleship:
-        return "L"
-    default:
-        return "?"
-    }
+	switch u.Type {
+	case Tank:
+		return "T"
+	case Fighter:
+		return "F"
+	case Bomber:
+		return "B"
+	case Transport:
+		return "R"
+	case Destroyer:
+		return "D"
+	case Submarine:
+		return "S"
+	case Carrier:
+		return "C"
+	case Battleship:
+		return "L"
+	default:
+		return "?"
+	}
 }
 
 func unitTypeToString(unitType UnitType) string {
-    switch unitType {
-    case Blank:
-        return "Blank"
-    case Tank:
-        return "Tank"
-    case Fighter:
-        return "Fighter"
-    case Bomber:
-        return "Bomber"
-    case Transport:
-        return "Transport"
-    case Destroyer:
-        return "Destroyer"
-    case Submarine:
-        return "Submarine"
-    case Carrier:
-        return "Carrier"
-    case Battleship:
-        return "Battleship"
-    default:
-        return "Unknown"
-    }
+	switch unitType {
+	case Blank:
+		return "Blank"
+	case Tank:
+		return "Tank"
+	case Fighter:
+		return "Fighter"
+	case Bomber:
+		return "Bomber"
+	case Transport:
+		return "Transport"
+	case Destroyer:
+		return "Destroyer"
+	case Submarine:
+		return "Submarine"
+	case Carrier:
+		return "Carrier"
+	case Battleship:
+		return "Battleship"
+	default:
+		return "Unknown"
+	}
 }

@@ -63,13 +63,13 @@ func NewGameBoard(rows, columns int) *GameBoard {
 
 // GenerateRandomIslands generates random oval-shaped islands on the game board.
 func (g *GameBoard) GenerateRandomIslands(numIslands int) {
-	rand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	for i := 0; i < numIslands; i++ {
-		centerRow := rand.Intn(g.Rows)
-		centerCol := rand.Intn(g.Columns)
-		radiusX := rand.Intn(6) + 2 // Random oval radius between 2 and 5 cells
-		radiusY := rand.Intn(6) + 2 // Random oval radius between 2 and 5 cells
+		centerRow := r.Intn(g.Rows)
+		centerCol := r.Intn(g.Columns)
+		radiusX := r.Intn(6) + 2 // Random oval radius between 2 and 5 cells
+		radiusY := r.Intn(6) + 2 // Random oval radius between 2 and 5 cells
 
 		for row := 0; row < g.Rows; row++ {
 			for col := 0; col < g.Columns; col++ {
@@ -87,12 +87,12 @@ func (g *GameBoard) GenerateRandomIslands(numIslands int) {
 
 // AddCities randomly adds cities to land cells without neighboring cities.
 func (g *GameBoard) AddCities(numCities int) {
-	rand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	for i := 0; i < numCities; i++ {
 		for {
-			row := rand.Intn(g.Rows)
-			col := rand.Intn(g.Columns)
+			row := r.Intn(g.Rows)
+			col := r.Intn(g.Columns)
 
 			// Check if the cell is land and does not have neighboring cities
 			excludeTargetCell := false
@@ -110,37 +110,38 @@ func (g *GameBoard) AddCities(numCities int) {
 
 // DayZero performs game logic for a new day
 func (g *GameBoard) DayZero() {
-    // player 1
-    randomIndex := rand.Intn(len(g.Cities))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// player 1
+	randomIndex := r.Intn(len(g.Cities))
 	city := &g.Cities[randomIndex]
 	city.OccupyingPlayer = OccupiedByPlayer1
-    if g.Player1.IsAI {
-        city.ManufacturingUnit = g.getWhichUnitToManufactureNextAI(Coordinate{city.PositionX, city.PositionY}, 1, city.IsCityNextToSea)
-    }
-    // player 2
-    randomIndex = rand.Intn(len(g.Cities))
-    city = &g.Cities[randomIndex]
-    city.OccupyingPlayer = OccupiedByPlayer2
-    if g.Player2.IsAI {
-        city.ManufacturingUnit = g.getWhichUnitToManufactureNextAI(Coordinate{city.PositionX, city.PositionY}, 2, city.IsCityNextToSea)
-    }
+	if g.Player1.IsAI {
+		city.ManufacturingUnit = g.getWhichUnitToManufactureNextAI(Coordinate{city.PositionX, city.PositionY}, 1, city.IsCityNextToSea)
+	}
+	// player 2
+	randomIndex = r.Intn(len(g.Cities))
+	city = &g.Cities[randomIndex]
+	city.OccupyingPlayer = OccupiedByPlayer2
+	if g.Player2.IsAI {
+		city.ManufacturingUnit = g.getWhichUnitToManufactureNextAI(Coordinate{city.PositionX, city.PositionY}, 2, city.IsCityNextToSea)
+	}
 }
 
 // NextDay performs game logic for a new day
 func (g *GameBoard) NextDay() {
-    g.Day++
-    for _, city := range g.Cities {
-        unitReady := city.ManufactureUnit()
-        if unitReady {
-            fmt.Println("unit ready")
-            player := 1
-            if city.OccupyingPlayer == OccupiedByPlayer2 {
-                player = 2
-            }
-            newUnit := NewUnit(city.PositionX, city.PositionY, city.ManufacturingUnit, player)
-            g.Units = append(g.Units, *newUnit)
-        }
-    }
+	g.Day++
+	for _, city := range g.Cities {
+		unitReady := city.ManufactureUnit()
+		if unitReady {
+			fmt.Println("unit ready")
+			player := 1
+			if city.OccupyingPlayer == OccupiedByPlayer2 {
+				player = 2
+			}
+			newUnit := NewUnit(city.PositionX, city.PositionY, city.ManufacturingUnit, player)
+			g.Units = append(g.Units, *newUnit)
+		}
+	}
 }
 
 // hasNeighboringCity checks if a cell has neighboring cities.
@@ -252,48 +253,48 @@ func (g *GameBoard) printToSlice(showFogOfWar bool) [][]string {
 }
 
 func (g *GameBoard) printCitiesForPlayer(playerID int) {
-    //fmt.Printf("Cities for Player %d:\n", playerID)
-    for _, city := range g.Cities {
-        if city.OccupyingPlayer == OccupiedByPlayer1 && playerID==1 {
-            manufacturingUnit := unitTypeToString(city.ManufacturingUnit)
-            fmt.Printf("City at (%d, %d) is manufacturing: %s, DaysUntilUnitReady: %d\n", city.PositionX, city.PositionY, manufacturingUnit, city.DaysUntilUnitReady)
-        }
-        if city.OccupyingPlayer == OccupiedByPlayer2 && playerID==2 {
-            manufacturingUnit := unitTypeToString(city.ManufacturingUnit)
-            fmt.Printf("City at (%d, %d) is manufacturing: %s, DaysUntilUnitReady: %d\n", city.PositionX, city.PositionY, manufacturingUnit, city.DaysUntilUnitReady)
-        }
-    }
+	//fmt.Printf("Cities for Player %d:\n", playerID)
+	for _, city := range g.Cities {
+		if city.OccupyingPlayer == OccupiedByPlayer1 && playerID == 1 {
+			manufacturingUnit := unitTypeToString(city.ManufacturingUnit)
+			fmt.Printf("City at (%d, %d) is manufacturing: %s, DaysUntilUnitReady: %d\n", city.PositionX, city.PositionY, manufacturingUnit, city.DaysUntilUnitReady)
+		}
+		if city.OccupyingPlayer == OccupiedByPlayer2 && playerID == 2 {
+			manufacturingUnit := unitTypeToString(city.ManufacturingUnit)
+			fmt.Printf("City at (%d, %d) is manufacturing: %s, DaysUntilUnitReady: %d\n", city.PositionX, city.PositionY, manufacturingUnit, city.DaysUntilUnitReady)
+		}
+	}
 }
 
 func (g *GameBoard) DoPlayerTurnAI(player int) {
 	var activeUnit *Unit
 	showFogOfWar := true
 	coordinate := Coordinate{}
-    for {
+	for {
 		activeUnit = g.getActiveUnitForPlayer(player)
 		if activeUnit == nil {
 			break // No more active units for the player
 		}
-        coordinate = Coordinate{activeUnit.PositionX, activeUnit.PositionY}
+		coordinate = Coordinate{activeUnit.PositionX, activeUnit.PositionY}
 
 		g.runUnitAI(activeUnit)
 
 		if g.hasPlayerWon(player) {
-		    fmt.Printf("\nPlayer %d has won\n", player)
+			fmt.Printf("\nPlayer %d has won\n", player)
 			break // the player has won
 		}
 	}
 	islandMap := g.getIslandMap(coordinate)
-    isConquered := g.isIslandConquered(islandMap, player)
-    tankCount := g.getUnitCount(Tank, islandMap, player)
-    transportCount := g.getUnitCount(Transport, islandMap, player)
+	isConquered := g.isIslandConquered(islandMap, player)
+	tankCount := g.getUnitCount(Tank, islandMap, player)
+	transportCount := g.getUnitCount(Transport, islandMap, player)
 
-    fmt.Printf("\nDay %d, Player %d:, hasConqueredIsland:%t \n", g.Day, player, isConquered)
-    fmt.Printf("\nTanks:%d, Transports:%d:\n", tankCount, transportCount)
-    g.printCitiesForPlayer(player)
-    g.printGridWithUnits(showFogOfWar)
-    time.Sleep(20 * time.Millisecond)
-    //clearScreen()
+	fmt.Printf("\nDay %d, Player %d:, hasConqueredIsland:%t \n", g.Day, player, isConquered)
+	fmt.Printf("\nTanks:%d, Transports:%d:\n", tankCount, transportCount)
+	g.printCitiesForPlayer(player)
+	g.printGridWithUnits(showFogOfWar)
+	time.Sleep(20 * time.Millisecond)
+	//clearScreen()
 }
 
 // getActiveUnitForPlayer returns an active unit for the specified player with MovesLeftThisDay > 0.
@@ -385,9 +386,7 @@ func (g *GameBoard) getPossibleMoves(unit *Unit) []Coordinate {
 		}
 	}
 	if len(moves) == 0 {
-		for _, randomMove := range randomMoves {
-			moves = append(moves, randomMove)
-		}
+		moves = append(moves, randomMoves...)
 	}
 	return moves
 }
@@ -403,7 +402,7 @@ func getSecondCoordinate(coordinates []Coordinate) *Coordinate {
 
 // attemptMoveTo attempts to move the unit to the destination coordinates
 func (g *GameBoard) attemptMoveTo(destinationCoordinate Coordinate, unit *Unit) {
-    fmt.Printf("unit at %d, %d, attemptMoveTo() %d, %d\n", unit.PositionX, unit.PositionY, destinationCoordinate.PositionX, destinationCoordinate.PositionY)
+	fmt.Printf("unit at %d, %d, attemptMoveTo() %d, %d\n", unit.PositionX, unit.PositionY, destinationCoordinate.PositionX, destinationCoordinate.PositionY)
 	radius := 1
 	g.clearFogOfWarAroundCoordinate(destinationCoordinate, radius)
 	defender := g.getUnitAtCoordinates(destinationCoordinate, unit.Player)
@@ -423,12 +422,8 @@ func (g *GameBoard) attemptMoveTo(destinationCoordinate Coordinate, unit *Unit) 
 
 // getAttackOutcome decides an attack outcome based on chance
 func (g *GameBoard) getAttackOutcome() bool {
-	// Seed the random number generator with the current timestamp
-	rand.Seed(time.Now().UnixNano())
-	if rand.Intn(2) == 0 { // 50% probability.
-		return true
-	}
-	return false
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return r.Intn(2) == 0 // 50% probability.
 }
 
 // clearFogOfWarAroundCoordinate clears the fog of war around the specified coordinates within a given radius.
@@ -464,7 +459,7 @@ func (g *GameBoard) getCityAtCoordinates(coordinate Coordinate) *City {
 
 // resolveCityAttack determines the outcome of an attack between an attacking unit and a defending city.
 func (g *GameBoard) resolveCityAttack(attacker *Unit, defender *City, attackOutcome bool) {
-    fmt.Printf("resolveCityAttack defender %d, %d\n", defender.PositionX, defender.PositionY)
+	fmt.Printf("resolveCityAttack defender %d, %d\n", defender.PositionX, defender.PositionY)
 	attacker.MovesLeftThisDay--
 	if attacker.CanFly {
 		attacker.Fuel--
@@ -503,7 +498,7 @@ func (g *GameBoard) resolveCityAttack(attacker *Unit, defender *City, attackOutc
 
 // resolveUnitAttack determines the outcome of an attack between an attacking unit and a defending unit.
 func (g *GameBoard) resolveUnitAttack(attacker, defender *Unit, attackOutcome bool) {
-    fmt.Printf("resolveUnitAttack defender %d, %d\n", defender.PositionX, defender.PositionY)
+	fmt.Printf("resolveUnitAttack defender %d, %d\n", defender.PositionX, defender.PositionY)
 	attacker.MovesLeftThisDay--
 	if attacker.CanFly {
 		attacker.Fuel--
@@ -664,50 +659,50 @@ func (g *GameBoard) getWhichUnitToManufactureNextAI(coordinate Coordinate, playe
 	isConquered := g.isIslandConquered(islandMap, player)
 	tankCount := g.getUnitCount(Tank, islandMap, player)
 	var weights []unitWeight
-    switch {
-    case isConquered && isCityNextToSea:
-        weights = []unitWeight{
-            {Tank, 1},
-            {Fighter, 1},
-            {Bomber, 1},
-            {Transport, 1},
-            {Destroyer, 2},
-            {Submarine, 2},
-            {Carrier, 2},
-            {Battleship, 3},
-        }
-    case isConquered && !isCityNextToSea && tankCount >= 10:
-        weights = []unitWeight{
-            {Tank, 1},
-            {Fighter, 1},
-            {Bomber, 2},
-        }
-    case isConquered && !isCityNextToSea && tankCount < 10:
-        weights = []unitWeight{
-            {Tank, 5},
-            {Fighter, 1},
-            {Bomber, 1},
-        }
-    case !isConquered && isCityNextToSea && tankCount >= 10:
-       weights = []unitWeight{
-           {Tank, 1},
-           {Fighter, 2},
-           {Destroyer, 3},
-       }
-    case !isConquered && isCityNextToSea && tankCount < 10:
-        weights = []unitWeight{
-            {Tank, 8},
-            {Fighter, 1},
-            {Destroyer, 1},
-        }
-    default:
-        weights = []unitWeight{
-            {Tank, 9},
-            {Fighter, 1},
-        }
-    }
+	switch {
+	case isConquered && isCityNextToSea:
+		weights = []unitWeight{
+			{Tank, 1},
+			{Fighter, 1},
+			{Bomber, 1},
+			{Transport, 1},
+			{Destroyer, 2},
+			{Submarine, 2},
+			{Carrier, 2},
+			{Battleship, 3},
+		}
+	case isConquered && !isCityNextToSea && tankCount >= 10:
+		weights = []unitWeight{
+			{Tank, 1},
+			{Fighter, 1},
+			{Bomber, 2},
+		}
+	case isConquered && !isCityNextToSea && tankCount < 10:
+		weights = []unitWeight{
+			{Tank, 5},
+			{Fighter, 1},
+			{Bomber, 1},
+		}
+	case !isConquered && isCityNextToSea && tankCount >= 10:
+		weights = []unitWeight{
+			{Tank, 1},
+			{Fighter, 2},
+			{Destroyer, 3},
+		}
+	case !isConquered && isCityNextToSea && tankCount < 10:
+		weights = []unitWeight{
+			{Tank, 8},
+			{Fighter, 1},
+			{Destroyer, 1},
+		}
+	default:
+		weights = []unitWeight{
+			{Tank, 9},
+			{Fighter, 1},
+		}
+	}
 
-    return getRandomUnit(weights)
+	return getRandomUnit(weights)
 }
 
 // getUnitCount return a count of units of a given type within a islandMap for a player

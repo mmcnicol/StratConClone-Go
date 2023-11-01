@@ -41,6 +41,12 @@ go install golang.org/x/tools/cmd/goimports@latest
 goimports -w .
 ```
 
+### lint
+```
+go install honnef.co/go/tools/cmd/staticcheck@latest
+staticcheck ./...
+```
+
 ### calculate cyclomatic complexities of functions in Go source code
 ```
 go get github.com/fzipp/gocyclo
