@@ -373,14 +373,12 @@ func slicesEqual(slice1, slice2 []Coordinate) bool {
 func TestGetIslandMap(t *testing.T) {
 	// Mock GameBoard with grid cells representing land and sea
 	board := GameBoard{
-		Rows:    5,
-		Columns: 5,
+		Rows:    3,
+		Columns: 3,
 		Grid: [][]Cell{
-			{{IsLand: true}, {IsLand: true}, {IsLand: false}, {IsLand: false}, {IsLand: false}},
-			{{IsLand: false}, {IsLand: false}, {IsLand: false}, {IsLand: false}, {IsLand: true}},
-			{{IsLand: false}, {IsLand: false}, {IsLand: true}, {IsLand: true}, {IsLand: true}},
-			{{IsLand: true}, {IsLand: false}, {IsLand: true}, {IsLand: true}, {IsLand: false}},
-			{{IsLand: true}, {IsLand: false}, {IsLand: false}, {IsLand: false}, {IsLand: false}},
+			{{IsLand: false}, {IsLand: true}, {IsLand: true}},
+			{{IsLand: true}, {IsLand: true}, {IsLand: true}},
+			{{IsLand: true}, {IsLand: true}, {IsLand: false}},
 		},
 	}
 
@@ -388,16 +386,17 @@ func TestGetIslandMap(t *testing.T) {
 	//board.Print(showFogOfWar)
 
 	// Mock unit's position
-	unit := Unit{PositionX: 2, PositionY: 2}
+	unit := Unit{PositionX: 2, PositionY: 1}
 
 	// Expected island map for the given unit's position
 	expectedIslandMap := []Coordinate{
-		{PositionX: 2, PositionY: 2},
-		{PositionX: 2, PositionY: 3},
-		{PositionX: 3, PositionY: 2},
-		{PositionX: 3, PositionY: 3},
-		{PositionX: 4, PositionY: 2},
-		{PositionX: 4, PositionY: 1},
+		{PositionX: 2, PositionY: 1},
+		{PositionX: 1, PositionY: 0},
+		{PositionX: 0, PositionY: 1},
+		{PositionX: 0, PositionY: 2},
+		{PositionX: 1, PositionY: 1},
+		{PositionX: 1, PositionY: 2},
+		{PositionX: 2, PositionY: 0},
 	}
 
 	// Call the function and check if the returned island map matches the expected one

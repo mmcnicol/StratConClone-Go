@@ -210,7 +210,7 @@ func (g *GameBoard) printGridWithUnits(showFogOfWar bool) {
 	grid := g.printToSlice(showFogOfWar)
 	for _, unit := range g.Units {
 		if !showFogOfWar || !g.Grid[unit.PositionX][unit.PositionY].IsFog {
-			grid[unit.PositionX][unit.PositionY] = Yellow+unit.Symbol()+Reset
+			grid[unit.PositionX][unit.PositionY] = unit.Symbol()
 		}
 	}
 	g.printSlice(grid)
@@ -241,9 +241,9 @@ func (g *GameBoard) printToSlice(showFogOfWar bool) [][]string {
 				if g.Grid[i][j].HasCity {
 					grid[i][j] = "C"
 				} else if g.Grid[i][j].IsLand {
-					grid[i][j] = Green+"L"+Reset
+					grid[i][j] = "L"
 				} else {
-					grid[i][j] = Blue+"S"+Reset
+					grid[i][j] = "S"
 				}
 			}
 		}
@@ -268,35 +268,32 @@ func (g *GameBoard) printCitiesForPlayer(playerID int) {
 func (g *GameBoard) DoPlayerTurnAI(player int) {
 	var activeUnit *Unit
 	showFogOfWar := true
+	coordinate := Coordinate{}
     for {
 		activeUnit = g.getActiveUnitForPlayer(player)
 		if activeUnit == nil {
 			break // No more active units for the player
 		}
-
-		//fmt.Printf("\nDay %d, Player %d:\n", g.Day, player)
-		//g.printGridWithUnits(showFogOfWar)
-		//time.Sleep(700 * time.Millisecond)
+        coordinate = Coordinate{activeUnit.PositionX, activeUnit.PositionY}
 
 		g.runUnitAI(activeUnit)
-
-        islandMap := g.getIslandMap(Coordinate{activeUnit.PositionX, activeUnit.PositionY})
-	    isConquered := g.isIslandConquered(islandMap, player)
-	    tankCount := g.getUnitCount(Tank, islandMap, player)
-	    transportCount := g.getUnitCount(Transport, islandMap, player)
-
-        fmt.Printf("\nDay %d, Player %d:, hasConqueredIsland:%t \n", g.Day, player, isConquered)
-		fmt.Printf("\nTanks:%d, Transports:%d:\n", tankCount, transportCount)
-		g.printCitiesForPlayer(player)
-		g.printGridWithUnits(showFogOfWar)
-		time.Sleep(2000 * time.Millisecond)
-        clearScreen()
 
 		if g.hasPlayerWon(player) {
 		    fmt.Printf("\nPlayer %d has won\n", player)
 			break // the player has won
 		}
 	}
+	islandMap := g.getIslandMap(coordinate)
+    isConquered := g.isIslandConquered(islandMap, player)
+    tankCount := g.getUnitCount(Tank, islandMap, player)
+    transportCount := g.getUnitCount(Transport, islandMap, player)
+
+    fmt.Printf("\nDay %d, Player %d:, hasConqueredIsland:%t \n", g.Day, player, isConquered)
+    fmt.Printf("\nTanks:%d, Transports:%d:\n", tankCount, transportCount)
+    g.printCitiesForPlayer(player)
+    g.printGridWithUnits(showFogOfWar)
+    time.Sleep(20 * time.Millisecond)
+    //clearScreen()
 }
 
 // getActiveUnitForPlayer returns an active unit for the specified player with MovesLeftThisDay > 0.
@@ -472,7 +469,8 @@ func (g *GameBoard) resolveCityAttack(attacker *Unit, defender *City, attackOutc
 	if attacker.CanFly {
 		attacker.Fuel--
 	}
-	if attackOutcome && attacker.Strength >= defender.Strength {
+	//if attackOutcome && attacker.Strength >= defender.Strength {
+	if attackOutcome {
 		// Apply damage to the defender's strength
 		defender.Strength--
 		// Check if the defender is destroyed
