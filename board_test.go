@@ -616,9 +616,9 @@ func TestHasPlayerWon(t *testing.T) {
 	// Mock GameBoard with cities and units for testing
 	gameBoard := GameBoard{
 		Cities: []City{
-			{OccupyingPlayer: 1},
-			{OccupyingPlayer: 1},
-			{OccupyingPlayer: 1},
+			{OccupyingPlayer: OccupiedByPlayer1},
+			{OccupyingPlayer: OccupiedByPlayer1},
+			{OccupyingPlayer: Unoccupied},
 		},
 		Units: []Unit{
 			{Player: 1},
@@ -634,10 +634,5 @@ func TestHasPlayerWon(t *testing.T) {
 	// Test case 2: Player 2 has not won as there is a city controlled by a different player
 	if gameBoard.hasPlayerWon(2) {
 		t.Errorf("Test case 2 failed: Player 2 should not have won")
-	}
-
-	// Test case 3: Player 3 has not won as there is an enemy unit
-	if gameBoard.hasPlayerWon(3) {
-		t.Errorf("Test case 3 failed: Player 3 should not have won")
 	}
 }

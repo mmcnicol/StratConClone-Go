@@ -1026,24 +1026,14 @@ func getRandomUnit(weights []unitWeight) UnitType {
 
 // hasPlayerWon checks if the specified player has won the game.
 func (g *GameBoard) hasPlayerWon(playerID int) bool {
+	// The game is won when one player controls all of the opponent's cities.
 	// Check if any city is occupied by a different player
 	for _, city := range g.Cities {
-		if city.OccupyingPlayer == Unoccupied {
-			return false // Player has not won if any city is unoccupied
-		} else if city.OccupyingPlayer == OccupiedByPlayer1 && playerID != 1 {
+		if city.OccupyingPlayer == OccupiedByPlayer1 && playerID != 1 {
 			return false // Player has not won if any city is occupied by another player
 		} else if city.OccupyingPlayer == OccupiedByPlayer2 && playerID != 2 {
 			return false // Player has not won if any city is occupied by another player
 		}
 	}
-
-	// Check if there are no enemy units on the board
-	for _, unit := range g.Units {
-		if unit.Player != playerID {
-			return false // Player has not won if any enemy unit exists
-		}
-	}
-
-	// If all cities are occupied by the player and there are no enemy units, the player has won
 	return true
 }
