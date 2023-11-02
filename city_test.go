@@ -71,7 +71,7 @@ func TestManufactureUnit(t *testing.T) {
 	if city.ManufacturingUnit != Tank {
 		t.Errorf("day %d, occupied city, value of ManufacturingUnit = %d; want %d", day, city.ManufacturingUnit, Tank)
 	}
-	if city.DaysUntilUnitReady != 4 { // value of city.DaysUntilUnitReady has changed to value of c.GetDaysToProduceUnit(c.ManufacturingUnit)
+	if city.DaysUntilUnitReady != 0 {
 		t.Errorf("day %d, occupied city, value of DaysUntilUnitReady = %d; want %d", day, city.DaysUntilUnitReady, 4)
 	}
 }

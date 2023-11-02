@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 // UnitType represents the type of units that can be manufactured in a city.
 type UnitType int
 
@@ -43,21 +41,143 @@ func NewUnit(positionX, positionY int, unitType UnitType, player int) *Unit {
 		Type:               unitType,
 		Player:             player,
 		Strength:           GetNewUnitStrength(unitType),
-		MovesPerDay:        2,     // TODO: create a function to get this based on unitType
-		MovesLeftThisDay:   2,     // TODO: create a function to get this based on unitType (same as above)
-		Fuel:               0,     // TODO: create a function to get this based on unitType
-		CanMoveOnLand:      true,  // TODO: create a function to get this based on unitType
-		CanMoveOnWater:     false, // TODO: create a function to get this based on unitType
-		CanFly:             false, // TODO: create a function to get this based on unitType
-		AttackRange:        1,     // TODO: create a function to get this based on unitType
-		AttacksLeftThisDay: 2,
-		CanCaptureCity:     true, // TODO: create a function to get this based on unitType
+		MovesLeftThisDay:   GetMovesPerDay(unitType),
+		Fuel:               GetFuelPerDay(unitType),
+		CanMoveOnLand:      GetCanMoveOnLand(unitType),
+		CanMoveOnWater:     GetCanMoveOnWater(unitType),
+		CanFly:             GetCanFly(unitType),
+		AttackRange:        GetAttackRange(unitType),
+		AttacksLeftThisDay: GetAttacksPerDay(unitType),
+		CanCaptureCity:     GetCanCaptureCity(unitType),
+	}
+}
+
+// GetCanCaptureCity returns whether or not the unit type can capture a city.
+func GetCanCaptureCity(unitType UnitType) bool {
+	switch unitType {
+	case Tank:
+		return true
+	case Fighter, Bomber, Transport, Destroyer, Submarine, Carrier, Battleship:
+		return false
+	default:
+		return false
+	}
+}
+
+// GetAttacksPerDay returns the attack range of the unit type.
+func GetAttacksPerDay(unitType UnitType) int {
+	switch unitType {
+	case Tank, Fighter, Bomber, Transport, Destroyer, Submarine, Carrier, Battleship:
+		return 2
+	default:
+		return 2
+	}
+}
+
+// GetAttackRange returns the attack range of the unit type.
+func GetAttackRange(unitType UnitType) int {
+	switch unitType {
+	case Tank, Fighter, Bomber, Transport, Destroyer, Submarine, Carrier:
+		return 1
+	case Battleship:
+		return 4
+	default:
+		return 1
+	}
+}
+
+// GetCanFly returns whether of not the unit type can fly.
+func GetCanFly(unitType UnitType) bool {
+	switch unitType {
+	case Tank, Transport, Destroyer, Submarine, Carrier, Battleship:
+		return false
+	case Fighter, Bomber:
+		return true
+	default:
+		return false
+	}
+}
+
+// GetCanMoveOnWater returns whether of not the unit type can move on water.
+func GetCanMoveOnWater(unitType UnitType) bool {
+	switch unitType {
+	case Tank:
+		return false
+	case Fighter:
+		return true
+	case Bomber:
+		return true
+	case Transport:
+		return true
+	case Destroyer:
+		return true
+	case Submarine:
+		return true
+	case Carrier:
+		return true
+	case Battleship:
+		return true
+	default:
+		return false
+	}
+}
+
+// GetCanMoveOnLand returns whether of not the unit type can move on land.
+func GetCanMoveOnLand(unitType UnitType) bool {
+	switch unitType {
+	case Tank:
+		return true
+	case Fighter:
+		return true
+	case Bomber:
+		return true
+	case Transport:
+		return false
+	case Destroyer:
+		return false
+	case Submarine:
+		return false
+	case Carrier:
+		return false
+	case Battleship:
+		return false
+	default:
+		return false
+	}
+}
+
+// GetMovesPerDay returns the number of moves per day for a given unit type.
+func GetMovesPerDay(unitType UnitType) int {
+	switch unitType {
+	case Tank:
+		return 2
+	case Fighter:
+		return 20
+	case Bomber:
+		return 10
+	case Transport, Submarine, Carrier, Battleship:
+		return 3
+	case Destroyer:
+		return 4
+	}
+	return 0
+}
+
+// GetFuelPerDay returns the amount of fuel per day for a given unit type.
+func GetFuelPerDay(unitType UnitType) int {
+	switch unitType {
+	case Fighter:
+		return 20
+	case Bomber:
+		return 30
+	default:
+		return 0
 	}
 }
 
 // GetNewUnitStrength gets the strength of a new unit.
-func GetNewUnitStrength(unit UnitType) int {
-	switch unit {
+func GetNewUnitStrength(unitType UnitType) int {
+	switch unitType {
 	case Tank:
 		return 2
 	case Fighter:
@@ -79,8 +199,8 @@ func GetNewUnitStrength(unit UnitType) int {
 }
 
 // GetDaysToProduceUnit gets the number of days to produce a unit.
-func GetDaysToProduceUnit(unit UnitType) int {
-	switch unit {
+func GetDaysToProduceUnit(unitType UnitType) int {
+	switch unitType {
 	case Tank:
 		return 4
 	case Fighter:
@@ -103,7 +223,7 @@ func GetDaysToProduceUnit(unit UnitType) int {
 
 // MoveTo updates the unit's position on the board, reduces MovesLeftThisDay, and if applicable, reduces Fuel
 func (u *Unit) MoveTo(coordinate Coordinate) {
-	fmt.Printf("MoveTo %d, %d\n", coordinate.PositionX, coordinate.PositionY)
+	//fmt.Printf("MoveTo %d, %d\n", coordinate.PositionX, coordinate.PositionY)
 	u.PositionX = coordinate.PositionX
 	u.PositionY = coordinate.PositionY
 	u.MovesLeftThisDay--

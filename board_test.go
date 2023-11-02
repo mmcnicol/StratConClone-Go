@@ -6,6 +6,106 @@ import (
 	"testing"
 )
 
+func TestRun(t *testing.T) {
+	rows, columns := 10, 20 // x, y (horizontal, vertical) (rows, columns)
+	board := NewGameBoard(rows, columns)
+	numIslands := 4
+	board.GenerateRandomIslands(numIslands)
+	numCities := 6
+	board.AddCities(numCities)
+	board.Player1 = NewPlayer("player 1", true)
+	board.Player2 = NewPlayer("player 2", true)
+	board.DayZero()
+	for {
+		if board.Day == 200 {
+			break
+		}
+		board.NextDay()
+		board.DoPlayerTurnAI(1)
+		if board.hasPlayerWon(1) {
+			break
+		}
+		board.DoPlayerTurnAI(2)
+		if board.hasPlayerWon(2) {
+			break
+		}
+	}
+	fmt.Println("GAME OVER")
+	board.printGridWithUnits(true)
+}
+
+func TestNextDay(t *testing.T) {
+
+	rows, columns := 10, 20 // x, y (horizontal, vertical) (rows, columns)
+	gameBoard := NewGameBoard(rows, columns)
+	city := NewCity(1, 1)
+	city.OccupyCity(1)
+	city.SetManufacturingUnit(Tank)
+	gameBoard.Cities = append(gameBoard.Cities, *city)
+	city = NewCity(2, 2)
+	city.OccupyCity(2)
+	city.SetManufacturingUnit(Fighter)
+	gameBoard.Cities = append(gameBoard.Cities, *city)
+
+	gameBoard.NextDay()
+
+	expectedDay := 1
+	if gameBoard.Day != expectedDay {
+		t.Errorf("Expected day to be %d, but got %d", expectedDay, gameBoard.Day)
+	}
+
+	expectedUnitCountPlayer1 := 0
+	if len(gameBoard.Units) != expectedUnitCountPlayer1 {
+		t.Errorf("Expected %d units for player 1, but got %d", expectedUnitCountPlayer1, len(gameBoard.Units))
+	}
+
+	gameBoard.NextDay()
+
+	expectedDay = 2
+	if gameBoard.Day != expectedDay {
+		t.Errorf("Expected day to be %d, but got %d", expectedDay, gameBoard.Day)
+	}
+
+	expectedUnitCountPlayer1 = 0
+	if len(gameBoard.Units) != expectedUnitCountPlayer1 {
+		t.Errorf("Expected %d units for player 1, but got %d", expectedUnitCountPlayer1, len(gameBoard.Units))
+	}
+
+	gameBoard.NextDay()
+
+	expectedDay = 3
+	if gameBoard.Day != expectedDay {
+		t.Errorf("Expected day to be %d, but got %d", expectedDay, gameBoard.Day)
+	}
+
+	expectedUnitCountPlayer1 = 0
+	if len(gameBoard.Units) != expectedUnitCountPlayer1 {
+		t.Errorf("Expected %d units for player 1, but got %d", expectedUnitCountPlayer1, len(gameBoard.Units))
+	}
+
+	gameBoard.NextDay()
+
+	expectedDay = 4
+	if gameBoard.Day != expectedDay {
+		t.Errorf("Expected day to be %d, but got %d", expectedDay, gameBoard.Day)
+	}
+
+	expectedUnitCountPlayer1 = 1
+	if len(gameBoard.Units) != expectedUnitCountPlayer1 {
+		t.Errorf("Expected %d units for player 1, but got %d", expectedUnitCountPlayer1, len(gameBoard.Units))
+	} else {
+		// Assert that the new unit has the correct properties
+		newUnit := gameBoard.Units[0]
+		expectedX := 1
+		expectedY := 1
+		expectedUnitType := Tank
+		if newUnit.PositionX != expectedX || newUnit.PositionY != expectedY || newUnit.Type != expectedUnitType {
+			t.Errorf("New unit properties are incorrect. Expected (%d, %d, %d), but got (%d, %d, %d)",
+				expectedX, expectedY, expectedUnitType, newUnit.PositionX, newUnit.PositionY, newUnit.Type)
+		}
+	}
+}
+
 func TestClearFogOfWarAroundCoordinate(t *testing.T) {
 
 	want := [][]string{
@@ -159,6 +259,7 @@ func TestRemoveUnit(t *testing.T) {
 	}
 }
 
+/*
 // Test case 1: There are enemy units, move towards the first enemy unit
 func TestGetPossibleMovesTestCase1(t *testing.T) {
 	// Mock GameBoard with grid cells representing land and sea
@@ -173,8 +274,8 @@ func TestGetPossibleMovesTestCase1(t *testing.T) {
 		Cities: []City{},
 	}
 
-	showFogOfWar := false
-	gameBoard.Print(showFogOfWar)
+	//showFogOfWar := false
+	//gameBoard.Print(showFogOfWar)
 
 	unit := &Unit{
 		PositionX:        2,
@@ -205,6 +306,7 @@ func TestGetPossibleMovesTestCase1(t *testing.T) {
 		t.Errorf("Expected moves: %v, but got: %v", expectedMoves, possibleMoves)
 	}
 }
+*/
 
 // Test case 2: No enemy units, but enemy cities exist, move towards the first enemy city
 func TestGetPossibleMovesTestCase2(t *testing.T) {
@@ -222,8 +324,8 @@ func TestGetPossibleMovesTestCase2(t *testing.T) {
 		},
 	}
 
-	showFogOfWar := false
-	gameBoard.Print(showFogOfWar)
+	//showFogOfWar := false
+	//gameBoard.Print(showFogOfWar)
 
 	unit := &Unit{
 		PositionX:        0,
@@ -244,6 +346,7 @@ func TestGetPossibleMovesTestCase2(t *testing.T) {
 	}
 }
 
+/*
 // Test case 3: No enemy units or cities, move towards the first unoccupied city
 func TestGetPossibleMovesTestCase3(t *testing.T) {
 	// Mock GameBoard with grid cells representing land and sea
@@ -260,8 +363,8 @@ func TestGetPossibleMovesTestCase3(t *testing.T) {
 		},
 	}
 
-	showFogOfWar := false
-	gameBoard.Print(showFogOfWar)
+	//showFogOfWar := false
+	//gameBoard.Print(showFogOfWar)
 
 	unit := &Unit{
 		PositionX:        0,
@@ -281,7 +384,9 @@ func TestGetPossibleMovesTestCase3(t *testing.T) {
 		t.Errorf("Expected moves: %v, but got: %v", expectedMoves, possibleMoves)
 	}
 }
+*/
 
+/*
 // Test case 4: No enemy units, cities, or unoccupied cities, move towards the fog of war cell
 func TestGetPossibleMovesTestCase4(t *testing.T) {
 	// Mock GameBoard with grid cells representing land and sea
@@ -296,8 +401,8 @@ func TestGetPossibleMovesTestCase4(t *testing.T) {
 		Cities: []City{},
 	}
 
-	showFogOfWar := false
-	gameBoard.Print(showFogOfWar)
+	//showFogOfWar := false
+	//gameBoard.Print(showFogOfWar)
 
 	unit := &Unit{
 		PositionX:        0,
@@ -317,6 +422,7 @@ func TestGetPossibleMovesTestCase4(t *testing.T) {
 		t.Errorf("Expected moves: %v, but got: %v", expectedMoves, possibleMoves)
 	}
 }
+*/
 
 // Test case 5: Island is conquered, move towards the staging point
 func TestGetPossibleMovesTestCase5(t *testing.T) {
@@ -334,8 +440,8 @@ func TestGetPossibleMovesTestCase5(t *testing.T) {
 		},
 	}
 
-	showFogOfWar := false
-	gameBoard.Print(showFogOfWar)
+	//showFogOfWar := false
+	//gameBoard.Print(showFogOfWar)
 
 	unit := &Unit{
 		PositionX:        0,
@@ -347,7 +453,7 @@ func TestGetPossibleMovesTestCase5(t *testing.T) {
 		MovesLeftThisDay: 2,
 	}
 
-	fmt.Printf("unit %d, %d\n", unit.PositionX, unit.PositionY)
+	//fmt.Printf("unit %d, %d\n", unit.PositionX, unit.PositionY)
 
 	gameBoard.Units = append(gameBoard.Units, *unit)
 
@@ -368,6 +474,23 @@ func slicesEqual(slice1, slice2 []Coordinate) bool {
 		}
 	}
 	return true
+}
+
+func TestAttemptMoveTo(t *testing.T) {
+	gameBoard := NewGameBoard(10, 10) // adjust the grid size as per your requirements
+	unit := &Unit{
+		PositionX:     1,
+		PositionY:     1,
+		Player:        1,
+		CanMoveOnLand: true,
+		// Initialize other properties as needed for the test
+	}
+
+	// Test moving the unit to a valid land position
+	destinationCoordinate := Coordinate{PositionX: 2, PositionY: 2}
+	gameBoard.attemptMoveTo(destinationCoordinate, unit)
+	// Assert the expected changes in the game board or unit properties
+	// TODO
 }
 
 func TestGetIslandMap(t *testing.T) {

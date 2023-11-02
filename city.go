@@ -1,7 +1,5 @@
 package main
 
-//import "fmt"
-
 // CityState represents the state of a city.
 type CityState int
 
@@ -27,11 +25,12 @@ type City struct {
 // NewCity creates a new City with the given parameters.
 func NewCity(positionX, positionY int) *City {
 	return &City{
-		PositionX:         positionX,
-		PositionY:         positionY,
-		Strength:          NewCityStrength,
-		OccupyingPlayer:   Unoccupied,
-		ManufacturingUnit: Blank,
+		PositionX:          positionX,
+		PositionY:          positionY,
+		Strength:           NewCityStrength,
+		OccupyingPlayer:    Unoccupied,
+		ManufacturingUnit:  Blank,
+		DaysUntilUnitReady: 0,
 	}
 }
 
@@ -53,15 +52,14 @@ func (c *City) ManufactureUnit() bool {
 	if c.OccupyingPlayer == Unoccupied {
 		return false
 	}
-	if c.ManufacturingUnit == Blank { // this check should not be required, since an occupied city has to manufacture a unit
+	if c.ManufacturingUnit == Blank {
 		return false
 	}
 	if c.DaysUntilUnitReady > 0 {
-		c.DaysUntilUnitReady--
-	}
-	if c.DaysUntilUnitReady == 0 {
-		c.DaysUntilUnitReady = GetDaysToProduceUnit(c.ManufacturingUnit)
-		return true
+		c.DaysUntilUnitReady = c.DaysUntilUnitReady - 1
+		if c.DaysUntilUnitReady == 0 {
+			return true
+		}
 	}
 	return false
 }

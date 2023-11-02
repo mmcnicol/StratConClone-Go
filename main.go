@@ -19,7 +19,8 @@ func main() {
 	board.Player2 = NewPlayer("player 2", true)
 	board.DayZero()
 	for {
-		if board.Day == 4 {
+		if board.Day == 20 {
+			fmt.Println("demo game cut short")
 			break
 		}
 		board.NextDay()
